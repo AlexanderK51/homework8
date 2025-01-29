@@ -24,7 +24,7 @@ void replaceLastFourBytes(std::vector<char> &data, uint32_t value) {
  * оригинального вектора
  * @return новый вектор
  */
-std::vector<char> hack(const std::vector<char> &original,const std::string &injection, size_t totalth, size_t nth, const char *path) {
+bool hack(const std::vector<char> &original,const std::string &injection, size_t totalth, size_t nth, const char *path) {
   const uint32_t originalCrc32 = crc32(original.data(), original.size());
 
   std::vector<char> result(original.size() + injection.size() + 4);
@@ -48,7 +48,8 @@ std::vector<char> hack(const std::vector<char> &original,const std::string &inje
     if (currentCrc32 == originalCrc32) {
       std::cout << "Success\n";
       writeToFile(path, result);
-      return result;
+      
+      return 1;
     }
     // Отображаем прогресс
     if (i % 1000 == 0) {
@@ -57,7 +58,8 @@ std::vector<char> hack(const std::vector<char> &original,const std::string &inje
                 << std::endl;
     }
   }
-  throw std::logic_error("Can't hack");
+  //throw std::logic_error("Can't hack");
+  return 0;
 }
 
 int main(int argc, char **argv) {
@@ -72,13 +74,10 @@ int main(int argc, char **argv) {
     std::cout << std::thread::hardware_concurrency() << std::endl;
     for (size_t x = 1; x <= std::thread::hardware_concurrency(); x++){
       std::thread th(hack,data, "He-he-he", std::thread::hardware_concurrency(), x, argv[2]);
-      th.detach();
-    }
-    bool waiting = false;
-    while(!waiting){
+      th.join();
       const std::vector<char> data = readFromFile(argv[2]);
       if (data.size() > 1){
-        waiting = true;
+        break;
       }
     }
   } catch (std::exception &ex) {
